@@ -13,14 +13,12 @@ var createTask = function(taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
-
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
 };
 
 var loadTasks = function() {
   tasks = JSON.parse(localStorage.getItem("tasks"));
-  console.log(tasks);
 
   // if nothing in localStorage, create a new object to track all task status arrays
   if (!tasks) {
@@ -46,8 +44,64 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+  helper: "clone",
+  activate: function(event) {
+    // console.log("activate", this);
+  },
+  deactivate: function(event) {
+    // console.log("deactivate", this);
+  },
+  over: function(event) {
+    // console.log("over", event.target);
+  },
+  out: function(event) {
+    // console.log("out", event.target);
+  },
+  update: function(event) {
+    var tempArr = [];
+    $(this).children().each(function(){
+      var text = $(this)
+        .find("p")
+        .text()
+        .trim();
+      var date = $(this)
+        .find("span")
+        .text()
+        .trim();
 
+      tempArr.push({
+          text:text, 
+          date:date
+        });
+    });
 
+    var arrName = $(this)
+      .attr('id')
+      .replace("list-", "");
+
+    tasks[arrName] = tempArr;
+    saveTasks();
+  }
+});
+
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop: function(event, ui) {
+    console.log("drop");
+    ui.draggable.remove();
+  },
+  over: function(event, ui) {
+    console.log("over");
+  },
+  out: function(event, ui) {
+    console.log("out");
+  }
+})
 
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {
@@ -91,7 +145,9 @@ $(".list-group").on("click", "p", function() {
     .trim();
 
   // replace p element with a new textarea
-  var textInput = $("<textarea>").addClass("form-control").val(text);
+  var textInput = $("<textarea>")
+    .addClass("form-control")
+    .val(text);
   $(this).replaceWith(textInput);
 
   // auto focus new element
@@ -164,7 +220,7 @@ $(".list-group").on("blur", "input[type='text']", function() {
   var taskSpan = $("<span>")
     .addClass("badge badge-primary badge-pill")
     .text(date);
-    $(this).replaceWith(taskSpan);
+  $(this).replaceWith(taskSpan);
 });
 
 // remove all tasks
@@ -178,5 +234,3 @@ $("#remove-tasks").on("click", function() {
 
 // load tasks for the first time
 loadTasks();
-
-
